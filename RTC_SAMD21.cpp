@@ -88,6 +88,7 @@ void RTC_SAMD21::adjust(const DateTime &dt)
     while (RTCisSyncing())
         ;
 }
+
 DateTime RTC_SAMD21::now()
 {
     RTCreadRequest();
@@ -99,6 +100,66 @@ DateTime RTC_SAMD21::now()
     uint16_t y = RTC->MODE2.CLOCK.bit.YEAR;
 
     return DateTime(y, m, d, hh, mm, ss);
+}
+
+DateTime RTC_SAMD21::alarm()
+{
+
+    uint8_t ss = RTC->MODE2.Mode2Alarm[0].ALARM.bit.SECOND;
+    uint8_t mm = RTC->MODE2.Mode2Alarm[0].ALARM.bit.MINUTE;
+    uint8_t hh = RTC->MODE2.Mode2Alarm[0].ALARM.bit.HOUR;
+    uint8_t d = RTC->MODE2.Mode2Alarm[0].ALARM.bit.DAY;
+    uint8_t m = RTC->MODE2.Mode2Alarm[0].ALARM.bit.MONTH;
+    uint16_t y = RTC->MODE2.Mode2Alarm[0].ALARM.bit.YEAR;
+
+    return DateTime(y, m, d, hh, mm, ss);
+}
+
+void RTC_SAMD21::setAlarm(const DateTime &dt)
+{
+    RTC_MODE2_CLOCK_Type alarmTime;
+
+    alarmTime.bit.SECOND = dt.second();
+    alarmTime.bit.MINUTE = dt.minute();
+    alarmTime.bit.HOUR = dt.hour();
+    alarmTime.bit.DAY = dt.day();
+    alarmTime.bit.MONTH = dt.month();
+    alarmTime.bit.YEAR = dt.year() - 2000;
+
+    RTC->MODE2.Mode2Alarm[0].ALARM.reg = alarmTime.reg;
+}
+
+void RTC_SAMD21::enableAlarm(Alarm_Match match)
+{
+    RTC->MODE2.Mode2Alarm[0].MASK.bit.SEL = match;
+    while (RTCisSyncing())
+        ;
+}
+
+void RTC_SAMD21::disableAlarm()
+{
+    RTC->MODE2.Mode2Alarm[0].MASK.bit.SEL = 0x00;
+    while (RTCisSyncing())
+        ;
+}
+
+void RTC_SAMD21::attachInterrupt(voidFuncPtr callback)
+{
+    RTC_callBack = callback;
+}
+
+void RTC_SAMD21::detachInterrupt()
+{
+    RTC_callBack = NULL;
+}
+
+void RTC_SAMD21::standbyMode()
+{
+    // Entering standby mode when connected
+    // via the native USB port causes issues.
+    SCB->SCR |= SCB_SCR_SLEEPDEEP_Msk;
+    __DSB();
+    __WFI();
 }
 
 /* Attach peripheral clock to 32k oscillator */

@@ -28,6 +28,13 @@ public:
     boolean begin();
     void adjust(const DateTime &dt);
     DateTime now();
+    void setAlarm(const DateTime &dt);
+    DateTime alarm();
+    void enableAlarm(Alarm_Match match);
+    void disableAlarm();
+    void attachInterrupt(voidFuncPtr callback);
+    void detachInterrupt();
+    void standbyMode();
 
 private:
     void config32kOSC(void);
