@@ -1,3 +1,4 @@
+#ifdef __SAMD21__
 #include "RTC_SAMD21.h"
 
 voidFuncPtr RTC_callBack = NULL;
@@ -190,3 +191,4 @@ extern "C"
         RTC->MODE2.INTFLAG.reg = RTC_MODE2_INTFLAG_ALARM0; // must clear flag at end
     }
 }
+#endif

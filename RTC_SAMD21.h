@@ -1,3 +1,4 @@
+#ifdef __SAMD21__
 #ifndef __RTC_SAMD21_H__
 #define __RTC_SAMD21_H__
 #include "DateTime.h"
@@ -38,4 +39,5 @@ private:
     void RTCreset();
     void RTCresetRemove();
 };
+#endif
 #endif
