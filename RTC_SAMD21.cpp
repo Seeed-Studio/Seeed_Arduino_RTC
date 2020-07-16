@@ -1,7 +1,7 @@
 #ifdef __SAMD21__
 #include "RTC_SAMD21.h"
 
-voidFuncPtr RTC_callBack = NULL;
+rtcCallBack RTC_callBack = NULL;
 
 bool RTC_SAMD21::begin()
 {
@@ -143,7 +143,7 @@ void RTC_SAMD21::disableAlarm()
         ;
 }
 
-void RTC_SAMD21::attachInterrupt(voidFuncPtr callback)
+void RTC_SAMD21::attachInterrupt(rtcCallBack callback)
 {
     RTC_callBack = callback;
 }

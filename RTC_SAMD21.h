@@ -3,6 +3,8 @@
 #define __RTC_SAMD21_H__
 #include "DateTime.h"
 
+typedef voidFuncPtr rtcCallBack 
+
 // Default date & time after reset
 #define DEFAULT_YEAR 2000 // 2000..2063
 #define DEFAULT_MONTH 1   // 1..12
@@ -32,7 +34,7 @@ public:
     DateTime alarm();
     void enableAlarm(Alarm_Match match);
     void disableAlarm();
-    void attachInterrupt(voidFuncPtr callback);
+    void attachInterrupt(rtcCallBack callback);
     void detachInterrupt();
     void standbyMode();
 

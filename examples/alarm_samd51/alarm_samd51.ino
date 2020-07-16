@@ -1,0 +1,66 @@
+#include "RTC_SAMD51.h"
+#include "DateTime.h"
+
+RTC_SAMD51 rtc;
+void setup()
+{
+    rtc.begin();
+
+    Serial.begin(115200);
+
+    while (!Serial)
+    {
+        ;
+    }
+    
+
+    DateTime now = DateTime(F(__DATE__), F(__TIME__));
+    Serial.println("adjust time!");
+    rtc.adjust(now);
+
+    now = rtc.now();
+
+    Serial.print(now.year(), DEC);
+    Serial.print('/');
+    Serial.print(now.month(), DEC);
+    Serial.print('/');
+    Serial.print(now.day(), DEC);
+    Serial.print(" ");
+    Serial.print(now.hour(), DEC);
+    Serial.print(':');
+    Serial.print(now.minute(), DEC);
+    Serial.print(':');
+    Serial.print(now.second(), DEC);
+    Serial.println();
+
+    DateTime alarm = DateTime(now.year(), now.month(), now.day(), now.hour(), now.minute(), now.second() + 15);
+
+    rtc.setAlarm(0,alarm); // match after 15 seconds
+    rtc.enableAlarm(0, rtc.MATCH_HHMMSS); // match Every Day
+
+    rtc.attachInterrupt(alarmMatch); // callback whlie alarm is match
+
+}
+
+void loop()
+{
+}
+
+void alarmMatch(uint32_t flag)
+{
+
+    Serial.println("Alarm Match!");
+    DateTime now = rtc.now();
+    Serial.print(now.year(), DEC);
+    Serial.print('/');
+    Serial.print(now.month(), DEC);
+    Serial.print('/');
+    Serial.print(now.day(), DEC);
+    Serial.print(" ");
+    Serial.print(now.hour(), DEC);
+    Serial.print(':');
+    Serial.print(now.minute(), DEC);
+    Serial.print(':');
+    Serial.print(now.second(), DEC);
+    Serial.println();
+}

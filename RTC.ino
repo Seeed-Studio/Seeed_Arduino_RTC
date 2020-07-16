@@ -2,33 +2,29 @@
 #include "DateTime.h"
 
 RTC_SAMD51 rtc;
-char daysOfTheWeek[7][12] = {"Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"};
 void setup()
 {
     rtc.begin();
+
     Serial.begin(115200);
+
+    while (!Serial)
+    {
+        ;
+    }
 
     DateTime now = DateTime(F(__DATE__), F(__TIME__));
     Serial.println("adjust time!");
     rtc.adjust(now);
-    
-}
 
-void loop()
-{
-    //Serial.println(rtc.count());
-
-    DateTime now = rtc.now();
+    now = rtc.now();
 
     Serial.print(now.year(), DEC);
     Serial.print('/');
     Serial.print(now.month(), DEC);
     Serial.print('/');
     Serial.print(now.day(), DEC);
-
-    Serial.print(" (");
-    Serial.print(daysOfTheWeek[now.dayOfTheWeek()]);
-    Serial.print(") ");
+    Serial.print(" ");
     Serial.print(now.hour(), DEC);
     Serial.print(':');
     Serial.print(now.minute(), DEC);
@@ -36,29 +32,57 @@ void loop()
     Serial.print(now.second(), DEC);
     Serial.println();
 
-    Serial.print(" since midnight 1/1/1970 = ");
-    Serial.print(now.unixtime());
-    Serial.print("s = ");
-    Serial.print(now.unixtime() / 86400L);
-    Serial.println("d");
+    DateTime alarm0 = DateTime(now.year(), now.month(), now.day(), now.hour(), now.minute(), now.second() + 5);
 
-    // calculate a date which is 7 days, 12 hours, 30 minutes, and 6 seconds into the future
-    DateTime future(now + TimeSpan(7, 12, 30, 6));
+    rtc.setAlarm(0, alarm0);               // match after 5 seconds
+    rtc.enableAlarm(0, rtc.MATCH_HHMMSS); // match Every Day
 
-    Serial.print(" now + 7d + 12h + 30m + 6s: ");
-    Serial.print(future.year(), DEC);
-    Serial.print('/');
-    Serial.print(future.month(), DEC);
-    Serial.print('/');
-    Serial.print(future.day(), DEC);
-    Serial.print(' ');
-    Serial.print(future.hour(), DEC);
-    Serial.print(':');
-    Serial.print(future.minute(), DEC);
-    Serial.print(':');
-    Serial.print(future.second(), DEC);
-    Serial.println();
+    DateTime alarm1 = DateTime(now.year(), now.month(), now.day(), now.hour(), now.minute(), now.second() + 10);
+    rtc.setAlarm(1, alarm1);               // match after 10 seconds
+    rtc.enableAlarm(1, rtc.MATCH_HHMMSS); // match Every Day
 
-    Serial.println();
-    delay(1000);
+    rtc.attachInterrupt(alarmMatch); // callback whlie alarm is match
+}
+
+void loop()
+{
+}
+
+void alarmMatch(uint32_t flag)
+{
+    Serial.printf("flag: %u\n\r", flag);
+    if (flag & 1)
+    {
+        Serial.println("Alarm0 Match!");
+        DateTime now = rtc.now();
+        Serial.print(now.year(), DEC);
+        Serial.print('/');
+        Serial.print(now.month(), DEC);
+        Serial.print('/');
+        Serial.print(now.day(), DEC);
+        Serial.print(" ");
+        Serial.print(now.hour(), DEC);
+        Serial.print(':');
+        Serial.print(now.minute(), DEC);
+        Serial.print(':');
+        Serial.print(now.second(), DEC);
+        Serial.println();
+    }
+    if (flag & 2)
+    {
+        Serial.println("Alarm1 Match!");
+        DateTime now = rtc.now();
+        Serial.print(now.year(), DEC);
+        Serial.print('/');
+        Serial.print(now.month(), DEC);
+        Serial.print('/');
+        Serial.print(now.day(), DEC);
+        Serial.print(" ");
+        Serial.print(now.hour(), DEC);
+        Serial.print(':');
+        Serial.print(now.minute(), DEC);
+        Serial.print(':');
+        Serial.print(now.second(), DEC);
+        Serial.println();
+    }
 }

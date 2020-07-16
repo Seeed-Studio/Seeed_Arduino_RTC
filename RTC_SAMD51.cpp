@@ -1,8 +1,7 @@
 #ifdef __SAMD51__
 #include "RTC_SAMD51.h"
 
-#define rtcFuncPtr void(uint32)
-voidFuncPtr RTC_callBack = NULL;
+rtcCallBack RTC_callBack = NULL;
 
 bool RTC_SAMD51::begin()
 {
@@ -27,13 +26,12 @@ bool RTC_SAMD51::begin()
 
     RTCreset();
 
-    tmp_reg_a |= RTC_MODE2_CTRLA_MODE_CLOCK; // set clock operating mode
+    tmp_reg_a |= RTC_MODE2_CTRLA_MODE_CLOCK;        // set clock operating mode
     tmp_reg_a |= RTC_MODE2_CTRLA_PRESCALER_DIV1024; // set prescaler to 1024 for MODE2
-    tmp_reg_a &= ~RTC_MODE2_CTRLA_MATCHCLR;  // disable clear on match
+    tmp_reg_a &= ~RTC_MODE2_CTRLA_MATCHCLR;         // disable clear on match
 
     //According to the datasheet RTC_MODE2_CTRL_CLKREP = 0 for 24h
     tmp_reg_a &= ~RTC_MODE2_CTRLA_CLKREP; // 24h time representation
-
 
     RTC->MODE2.CTRLA.reg = tmp_reg_a;
     while (RTCisSyncing())
@@ -43,7 +41,6 @@ bool RTC_SAMD51::begin()
     NVIC_SetPriority(RTC_IRQn, 0x00);
 
     RTC->MODE2.INTENSET.reg |= RTC_MODE2_INTENSET_ALARM0; // enable alarm0 interrupt
-    
     RTC->MODE2.Mode2Alarm[0].MASK.bit.SEL = MATCH_OFF;    // default alarm0 match is off (disabled)
 
     RTC->MODE2.INTENSET.reg |= RTC_MODE2_INTENSET_ALARM1; // enable alarm1 interrupt
@@ -128,6 +125,16 @@ void RTC_SAMD51::setAlarm(uint8_t id, const DateTime &dt)
     alarmTime.bit.YEAR = dt.year() - 2000;
 
     RTC->MODE2.Mode2Alarm[id].ALARM.reg = alarmTime.reg;
+    if (id == 0)
+    {
+        while (RTCisSyncing(RTC_MODE2_SYNCBUSY_ALARM0))
+            ;
+    }
+    else
+    {
+        while (RTCisSyncing(RTC_MODE2_SYNCBUSY_ALARM1))
+            ;
+    }
 }
 
 void RTC_SAMD51::enableAlarm(uint8_t id, Alarm_Match match)
@@ -135,6 +142,8 @@ void RTC_SAMD51::enableAlarm(uint8_t id, Alarm_Match match)
     if (id >= 2)
         return;
     RTC->MODE2.Mode2Alarm[id].MASK.bit.SEL = match;
+    while (RTCisSyncing(RTC_MODE2_SYNCBUSY_ALARM_Msk))
+        ;
 }
 
 void RTC_SAMD51::disableAlarm(uint8_t id)
@@ -142,9 +151,11 @@ void RTC_SAMD51::disableAlarm(uint8_t id)
     if (id >= 2)
         return;
     RTC->MODE2.Mode2Alarm[id].MASK.bit.SEL = 0x00;
+    while (RTCisSyncing(RTC_MODE2_SYNCBUSY_ALARM_Msk))
+        ;
 }
 
-void RTC_SAMD51::attachInterrupt(voidFuncPtr callback)
+void RTC_SAMD51::attachInterrupt(rtcCallBack callback)
 {
     RTC_callBack = callback;
 }
@@ -166,7 +177,7 @@ void RTC_SAMD51::standbyMode()
 /* Attach peripheral clock to 32k oscillator */
 void RTC_SAMD51::configureClock()
 {
-   MCLK->APBAMASK.reg |= MCLK_APBAMASK_RTC | MCLK_APBAMASK_OSC32KCTRL;
+    MCLK->APBAMASK.reg |= MCLK_APBAMASK_RTC | MCLK_APBAMASK_OSC32KCTRL;
 }
 
 /*
@@ -196,7 +207,6 @@ void RTC_SAMD51::config32kOSC()
     {
         /* code */
     }
-    
 }
 
 /* Synchronise the CLOCK register for reading*/
@@ -245,12 +255,25 @@ extern "C"
 {
     void RTC_Handler(void)
     {
+        uint32_t flag = 0;
+
         if (RTC_callBack != NULL)
         {
-            RTC_callBack();
-        }
 
-        RTC->MODE2.INTFLAG.reg = RTC_MODE2_INTFLAG_ALARM0 | RTC_MODE2_INTFLAG_ALARM1; // must clear flag at end
+            if (RTC->MODE2.INTFLAG.reg & RTC_MODE2_INTFLAG_ALARM0)
+                flag |= 1;
+            if (RTC->MODE2.INTFLAG.reg & RTC_MODE2_INTFLAG_ALARM1)
+                flag |= 2;
+            RTC_callBack(flag);
+        }
+        if (flag & 1)
+        {
+            RTC->MODE2.INTFLAG.reg = RTC_MODE2_INTFLAG_ALARM0;
+        }
+        if (flag & 2)
+        {
+            RTC->MODE2.INTFLAG.reg = RTC_MODE2_INTFLAG_ALARM1;
+        }
     }
 }
 #endif
