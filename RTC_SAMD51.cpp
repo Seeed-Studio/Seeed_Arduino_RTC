@@ -1,3 +1,24 @@
+/*
+    The MIT License (MIT)
+    Author: Hongtai Liu (lht856@foxmail.com)
+    Copyright (C) 2020  Seeed Technology Co.,Ltd.
+    Permission is hereby granted, free of charge, to any person obtaining a copy
+    of this software and associated documentation files (the "Software"), to deal
+    in the Software without restriction, including without limitation the rights
+    to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+    copies of the Software, and to permit persons to whom the Software is
+    furnished to do so, subject to the following conditions:
+    The above copyright notice and this permission notice shall be included in
+    all copies or substantial portions of the Software.
+    THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+    IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+    FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+    AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+    LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+    OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+    THE SOFTWARE.
+*/
+
 #ifdef __SAMD51__
 #include "RTC_SAMD51.h"
 
@@ -27,7 +48,7 @@ bool RTC_SAMD51::begin()
     RTCreset();
 
     tmp_reg_a |= RTC_MODE2_CTRLA_MODE_CLOCK;        // set clock operating mode
-    tmp_reg_a |= RTC_MODE2_CTRLA_PRESCALER_DIV1024; // set prescaler to 1024 for MODE2
+    tmp_reg_a |= RTC_MODE2_CTRLA_PRESCALER_DIV1024; // set prescaler to 1024 for MODE2 so that f = GCLK_RTC / 1024 = 1.024K / 1024 = 1Hz
     tmp_reg_a &= ~RTC_MODE2_CTRLA_MATCHCLR;         // disable clear on match
 
     //According to the datasheet RTC_MODE2_CTRL_CLKREP = 0 for 24h
@@ -174,7 +195,7 @@ void RTC_SAMD51::standbyMode()
     __WFI();
 }
 
-/* Attach peripheral clock to 32k oscillator */
+/* Attach peripheral clock to 32k oscillator and RTC*/
 void RTC_SAMD51::configureClock()
 {
     MCLK->APBAMASK.reg |= MCLK_APBAMASK_RTC | MCLK_APBAMASK_OSC32KCTRL;
@@ -192,20 +213,21 @@ void RTC_SAMD51::config32kOSC()
 
     calib = ((Osc32kctrl *)hw)->OSCULP32K.reg;
     calib = (calib & OSC32KCTRL_OSCULP32K_CALIB_Msk) >> OSC32KCTRL_OSCULP32K_CALIB_Pos;
-
+    //re-write calibrate
     ((Osc32kctrl *)hw)->OSCULP32K.reg &= ~OSC32KCTRL_OSCULP32K_WRTLOCK;
 
     ((Osc32kctrl *)hw)->OSCULP32K.reg = calib;
     ((Osc32kctrl *)hw)->OSCULP32K.reg &= ~(OSC32KCTRL_OSCULP32K_EN32K);
-    ((Osc32kctrl *)hw)->OSCULP32K.reg |= OSC32KCTRL_OSCULP32K_EN1K;
+    ((Osc32kctrl *)hw)->OSCULP32K.reg |= OSC32KCTRL_OSCULP32K_EN1K; //enable 1.024KHz OUPUT
 
     ((Osc32kctrl *)hw)->OSCULP32K.reg |= OSC32KCTRL_OSCULP32K_WRTLOCK;
 
+    //Use 1.024KHz for RTC
     ((Osc32kctrl *)hw)->RTCCTRL.reg = OSC32KCTRL_RTCCTRL_RTCSEL(OSC32KCTRL_RTCCTRL_RTCSEL_ULP1K_Val);
 
+    //waitting for stable
     while (!((Osc32kctrl *)hw)->STATUS.bit.XOSC32KRDY)
     {
-        /* code */
     }
 }
 
