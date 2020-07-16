@@ -19,7 +19,7 @@
 #define __RTC_SAMD21_H__
 #include "DateTime.h"
 
-typedef voidFuncPtr rtcCallBack 
+typedef voidFuncPtr rtcCallBack; 
 
 // Default date & time after reset
 #define DEFAULT_YEAR 2000 // 2000..2063
