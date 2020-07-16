@@ -5,8 +5,8 @@ RTC_SAMD51 rtc;
 char daysOfTheWeek[7][12] = {"Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"};
 void setup()
 {
-    rtc.begin();
     Serial.begin(115200);
+    rtc.begin();
 
     DateTime now = DateTime(F(__DATE__), F(__TIME__));
     Serial.println("adjust time!");
@@ -16,7 +16,6 @@ void setup()
 
 void loop()
 {
-    //Serial.println(rtc.count());
 
     DateTime now = rtc.now();
 
