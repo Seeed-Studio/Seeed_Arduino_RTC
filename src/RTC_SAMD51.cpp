@@ -26,7 +26,6 @@ rtcCallBack RTC_callBack = NULL;
 
 bool RTC_SAMD51::begin()
 {
-    configureClock();
     config32kOSC();
 
     uint16_t tmp_reg_a = 0;
@@ -42,6 +41,8 @@ bool RTC_SAMD51::begin()
         validTime = true;
         oldTime.reg = RTC->MODE2.CLOCK.reg;
     }
+
+    configureClock();
 
     RTCdisable();
 
@@ -216,7 +217,7 @@ void RTC_SAMD51::config32kOSC()
     //re-write calibrate
     ((Osc32kctrl *)hw)->OSCULP32K.reg &= ~OSC32KCTRL_OSCULP32K_WRTLOCK;
 
-    ((Osc32kctrl *)hw)->OSCULP32K.reg = calib;
+    ((Osc32kctrl *)hw)->OSCULP32K.reg |= calib;
     ((Osc32kctrl *)hw)->OSCULP32K.reg &= ~(OSC32KCTRL_OSCULP32K_EN32K);
     ((Osc32kctrl *)hw)->OSCULP32K.reg |= OSC32KCTRL_OSCULP32K_EN1K; //enable 1.024KHz OUPUT
 
