@@ -15,6 +15,8 @@ void setup()
     
 
     DateTime now = DateTime(F(__DATE__), F(__TIME__));
+
+    //!!! notic The year is limited to 2000-2099
     Serial.println("adjust time!");
     rtc.adjust(now);
 
