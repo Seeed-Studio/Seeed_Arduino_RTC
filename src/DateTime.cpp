@@ -59,7 +59,7 @@ static uint16_t date2days(uint16_t y, uint8_t m, uint8_t d) {
 */
 /**************************************************************************/
 static uint32_t time2ulong(uint16_t days, uint8_t h, uint8_t m, uint8_t s) {
-  return ((days * 24UL + h - 8) * 60 + m) * 60 + s;
+  return ((days * 24UL + h) * 60 + m) * 60 + s;
 }
 
 
