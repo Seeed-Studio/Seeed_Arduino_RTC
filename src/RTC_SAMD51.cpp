@@ -209,6 +209,9 @@ void RTC_SAMD51::configureClock()
 /* Configure the 32768Hz Oscillator */
 void RTC_SAMD51::config32kOSC()
 {
+#ifdef CRYSTALLESS
+    // This platform does not have external crystal.
+    // Thus, we have to enable OSCULP32K to generate RTC clock.
     void *hw = (void *)OSC32KCTRL;
     uint16_t calib = 0;
 
@@ -225,11 +228,14 @@ void RTC_SAMD51::config32kOSC()
 
     //Use 1.024KHz for RTC
     ((Osc32kctrl *)hw)->RTCCTRL.reg = OSC32KCTRL_RTCCTRL_RTCSEL(OSC32KCTRL_RTCCTRL_RTCSEL_ULP1K_Val);
-
-    //waitting for stable
-    while (!((Osc32kctrl *)hw)->STATUS.bit.XOSC32KRDY)
-    {
-    }
+#else
+    // This platform has external crystal and Arduino core has already enabled the XOSC32K oscillator.
+    // But the Arduino core does not enable 1.024[kHz] output.
+    // Thus all we have to do is just enable 1.024[kHz] output by setting XOSC32K.EN1k to 1.
+    OSC32KCTRL->XOSC32K.bit.EN1K = 1;
+    // Use 1.024[kHz] output for RTC.
+    OSC32KCTRL->RTCCTRL.bit.RTCSEL = OSC32KCTRL_RTCCTRL_RTCSEL_XOSC1K_Val;
+#endif
 }
 
 /* Synchronise the CLOCK register for reading*/
