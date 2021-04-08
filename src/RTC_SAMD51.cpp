@@ -123,12 +123,12 @@ DateTime RTC_SAMD51::alarm(uint8_t id)
 {
     if (id >= 2)
         return DateTime();
-    uint8_t ss = RTC->MODE2.Mode2Alarm[0].ALARM.bit.SECOND;
-    uint8_t mm = RTC->MODE2.Mode2Alarm[0].ALARM.bit.MINUTE;
-    uint8_t hh = RTC->MODE2.Mode2Alarm[0].ALARM.bit.HOUR;
-    uint8_t d = RTC->MODE2.Mode2Alarm[0].ALARM.bit.DAY;
-    uint8_t m = RTC->MODE2.Mode2Alarm[0].ALARM.bit.MONTH;
-    uint16_t y = RTC->MODE2.Mode2Alarm[0].ALARM.bit.YEAR;
+    uint8_t ss = RTC->MODE2.Mode2Alarm[id].ALARM.bit.SECOND;
+    uint8_t mm = RTC->MODE2.Mode2Alarm[id].ALARM.bit.MINUTE;
+    uint8_t hh = RTC->MODE2.Mode2Alarm[id].ALARM.bit.HOUR;
+    uint8_t d = RTC->MODE2.Mode2Alarm[id].ALARM.bit.DAY;
+    uint8_t m = RTC->MODE2.Mode2Alarm[id].ALARM.bit.MONTH;
+    uint16_t y = RTC->MODE2.Mode2Alarm[id].ALARM.bit.YEAR;
 
     return DateTime(y, m, d, hh, mm, ss);
 }

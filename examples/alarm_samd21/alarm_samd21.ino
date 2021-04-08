@@ -16,7 +16,7 @@ void setup()
 
     DateTime now = DateTime(F(__DATE__), F(__TIME__));
 
-    //!!! notic The year is limited to 2000-2099
+    //!!! notice The year is limited to 2000-2099
     Serial.println("adjust time!");
     rtc.adjust(now);
 
@@ -40,7 +40,7 @@ void setup()
     rtc.setAlarm(alarm); // match after 15 seconds
     rtc.enableAlarm(rtc.MATCH_HHMMSS); // match Every Day
 
-    rtc.attachInterrupt(alarmMatch); // callback whlie alarm is match
+    rtc.attachInterrupt(alarmMatch); // callback while alarm is match
 
 }
 
